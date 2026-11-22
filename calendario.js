@@ -17,7 +17,7 @@ export function deIso(iso) {
 
 /**
  * Desenha um calendário mensal dentro de `container`.
- * - aoSelecionar(iso): chamado quando um dia é tocado
+ * - aoSelecionar(iso): chamado quando um dia é selecionado
  * - aoMudarMes(ano, mes): chamado quando o mês exibido muda (mes: 0 a 11)
  */
 export function criarCalendario(container, { aoSelecionar, aoMudarMes } = {}) {
@@ -31,7 +31,12 @@ export function criarCalendario(container, { aoSelecionar, aoMudarMes } = {}) {
     mes += delta;
     if (mes < 0) { mes = 11; ano -= 1; }
     if (mes > 11) { mes = 0; ano += 1; }
+    selecionado =
+      ano === hoje.getFullYear() && mes === hoje.getMonth()
+        ? paraIso(hoje)
+        : paraIso(new Date(ano, mes, 1));
     desenhar();
+    if (aoSelecionar) aoSelecionar(selecionado);
     if (aoMudarMes) aoMudarMes(ano, mes);
   }
 

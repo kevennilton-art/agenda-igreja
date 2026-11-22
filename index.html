@@ -11,10 +11,6 @@
 <body>
   <header>
     <h1>Agenda da Igreja</h1>
-    <div id="usuario-barra" hidden>
-      <span id="usuario-email"></span>
-      <button id="btn-sair" type="button">Sair</button>
-    </div>
   </header>
 
   <main>
@@ -29,20 +25,86 @@
         <label for="senha">Senha</label>
         <input id="senha" type="password" autocomplete="current-password" required>
 
-        <button type="submit" id="btn-entrar">Entrar</button>
+        <button type="submit" id="btn-entrar" class="primario">Entrar</button>
         <button type="button" id="btn-esqueci" class="link">Esqueci minha senha</button>
       </form>
       <p id="mensagem" role="alert"></p>
     </section>
 
-    <section id="tela-app" hidden>
-      <div id="calendario"></div>
-      <div id="dia-detalhe">
-        <h3 id="dia-titulo"></h3>
-        <p id="dia-eventos">Nenhum evento neste dia.</p>
-      </div>
-    </section>
+    <div id="tela-app" hidden>
+      <p id="aviso-eventos" role="alert"></p>
+
+      <!-- Calendário -->
+      <section id="view-calendario" class="view">
+        <div id="calendario"></div>
+        <div id="dia-detalhe">
+          <h3 id="dia-titulo"></h3>
+          <div id="dia-eventos"></div>
+          <button type="button" id="btn-novo-dia" class="primario">+ Novo evento neste dia</button>
+        </div>
+      </section>
+
+      <!-- Lista do mês -->
+      <section id="view-lista" class="view" hidden>
+        <h2 id="lista-titulo"></h2>
+        <div id="lista-mes"></div>
+      </section>
+
+      <!-- Formulário -->
+      <section id="view-form" class="view" hidden>
+        <h2 id="form-titulo">Novo evento</h2>
+        <form id="form-evento">
+          <label for="ev-data">Data</label>
+          <input id="ev-data" type="date" required>
+
+          <label for="ev-titulo">Título</label>
+          <input id="ev-titulo" type="text" maxlength="120" required>
+
+          <label for="ev-publico">Público</label>
+          <select id="ev-publico">
+            <option value="criancas">Crianças</option>
+            <option value="mulheres">Mulheres</option>
+            <option value="ambos">Crianças e mulheres</option>
+          </select>
+
+          <label for="ev-descricao">Descrição (o que está planejado)</label>
+          <textarea id="ev-descricao" rows="4"></textarea>
+
+          <label for="ev-materiais">Materiais usados</label>
+          <textarea id="ev-materiais" rows="3"></textarea>
+
+          <label for="ev-feito">O que foi feito (preencher depois)</label>
+          <textarea id="ev-feito" rows="4"></textarea>
+
+          <label for="ev-observacoes">Observações</label>
+          <textarea id="ev-observacoes" rows="3"></textarea>
+
+          <label class="check">
+            <input id="ev-realizado" type="checkbox"> Evento realizado
+          </label>
+
+          <button type="submit" id="btn-salvar" class="primario">Salvar</button>
+          <button type="button" id="btn-cancelar" class="secundario">Cancelar</button>
+          <button type="button" id="btn-excluir" class="perigo" hidden>Excluir evento</button>
+        </form>
+        <p id="form-msg" role="alert"></p>
+      </section>
+
+      <!-- Conta -->
+      <section id="view-conta" class="view" hidden>
+        <h2>Conta</h2>
+        <p>Logada como <strong id="usuario-email"></strong></p>
+        <button type="button" id="btn-sair" class="primario">Sair</button>
+      </section>
+    </div>
   </main>
+
+  <nav id="barra-nav" hidden>
+    <button type="button" data-view="calendario" class="ativo"><span>📅</span>Calendário</button>
+    <button type="button" data-view="lista"><span>📋</span>Do mês</button>
+    <button type="button" data-view="form" id="nav-novo"><span>➕</span>Novo</button>
+    <button type="button" data-view="conta"><span>👤</span>Conta</button>
+  </nav>
 
   <script type="module" src="app.js"></script>
 </body>

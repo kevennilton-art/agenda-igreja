@@ -21,30 +21,15 @@ header h1 {
   font-size: 1.3rem;
 }
 
-#usuario-barra {
-  margin-top: 8px;
-  font-size: 0.85rem;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: 10px;
-}
-
-#usuario-barra button {
-  background: transparent;
-  color: #fff;
-  border: 1px solid #fff;
-  border-radius: 6px;
-  padding: 4px 10px;
-  cursor: pointer;
-}
-
 main {
-  padding: 16px;
+  padding: 16px 16px 96px;
   max-width: 600px;
   margin: 0 auto;
 }
 
+h2 { font-size: 1.15rem; margin: 0 0 12px; }
+
+/* Formulários */
 form {
   display: flex;
   flex-direction: column;
@@ -56,30 +41,44 @@ label {
   font-weight: 600;
 }
 
-input {
+input, select, textarea {
   padding: 12px;
-  font-size: 1rem;
+  font: inherit;
   border: 1px solid #bbb;
   border-radius: 8px;
+  background: #fff;
 }
 
-button {
-  font-size: 1rem;
+textarea { resize: vertical; }
+
+label.check {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 0;
 }
 
-#btn-entrar {
-  margin-top: 8px;
+label.check input {
+  width: 22px;
+  height: 22px;
+}
+
+button { font: inherit; }
+
+.primario, .secundario, .perigo {
   padding: 12px;
-  background: #5b4b8a;
-  color: #fff;
-  border: none;
   border-radius: 8px;
+  border: none;
   cursor: pointer;
+  width: 100%;
+  margin-top: 4px;
 }
 
-#btn-entrar:disabled {
-  opacity: 0.6;
-}
+.primario { background: #5b4b8a; color: #fff; }
+.secundario { background: #e4e0ef; color: #3b2f63; }
+.perigo { background: #fff; color: #b00020; border: 1px solid #b00020; }
+
+.primario:disabled { opacity: 0.6; }
 
 .link {
   background: none;
@@ -90,14 +89,12 @@ button {
   cursor: pointer;
 }
 
-#mensagem {
+#mensagem, #form-msg, #aviso-eventos {
   min-height: 1.2em;
   color: #b00020;
 }
 
-#mensagem.ok {
-  color: #1b6e2d;
-}
+#mensagem.ok, #form-msg.ok { color: #1b6e2d; }
 
 /* Calendário */
 .cal-nav {
@@ -107,9 +104,7 @@ button {
   margin-bottom: 8px;
 }
 
-.cal-nav strong {
-  font-size: 1.1rem;
-}
+.cal-nav strong { font-size: 1.1rem; }
 
 .cal-nav button {
   width: 44px;
@@ -145,15 +140,8 @@ button {
   cursor: pointer;
 }
 
-.cal-dia.hoje {
-  border: 2px solid #5b4b8a;
-  font-weight: 700;
-}
-
-.cal-dia.selecionado {
-  background: #5b4b8a;
-  color: #fff;
-}
+.cal-dia.hoje { border: 2px solid #5b4b8a; font-weight: 700; }
+.cal-dia.selecionado { background: #5b4b8a; color: #fff; }
 
 .cal-dia.marcado::after {
   content: "";
@@ -167,6 +155,7 @@ button {
   background: #e07a1f;
 }
 
+/* Detalhe do dia e cartões */
 #dia-detalhe {
   margin-top: 16px;
   padding: 12px;
@@ -178,4 +167,65 @@ button {
   margin: 0 0 8px;
   font-size: 1rem;
   text-transform: capitalize;
+}
+
+.cartao {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  width: 100%;
+  padding: 12px;
+  margin-bottom: 8px;
+  background: #f5f3fa;
+  border: 1px solid #ddd;
+  border-left: 5px solid #5b4b8a;
+  border-radius: 8px;
+  text-align: left;
+  cursor: pointer;
+}
+
+.cartao.feito { border-left-color: #1b6e2d; }
+
+.cartao .meta {
+  font-size: 0.85rem;
+  color: #555;
+}
+
+.vazio { color: #666; margin: 4px 0 12px; }
+
+#lista-mes .cartao { background: #fff; }
+
+/* Barra de navegação inferior */
+#barra-nav {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  background: #fff;
+  border-top: 1px solid #ccc;
+  padding-bottom: env(safe-area-inset-bottom);
+  z-index: 10;
+}
+
+#barra-nav button {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 8px 4px;
+  font-size: 0.75rem;
+  background: none;
+  border: none;
+  color: #666;
+  cursor: pointer;
+}
+
+#barra-nav button span { font-size: 1.3rem; }
+
+#barra-nav button.ativo {
+  color: #5b4b8a;
+  font-weight: 700;
 }
