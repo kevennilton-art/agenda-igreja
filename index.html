@@ -11,10 +11,35 @@
 <body>
   <header>
     <h1>Agenda da Igreja</h1>
+    <div id="usuario-barra" hidden>
+      <span id="usuario-email"></span>
+      <button id="btn-sair" type="button">Sair</button>
+    </div>
   </header>
+
   <main>
-    <p id="status">Conectando ao Firebase...</p>
+    <p id="carregando">Carregando...</p>
+
+    <section id="tela-login" hidden>
+      <h2>Entrar</h2>
+      <form id="form-login">
+        <label for="email">E-mail</label>
+        <input id="email" type="email" autocomplete="username" required>
+
+        <label for="senha">Senha</label>
+        <input id="senha" type="password" autocomplete="current-password" required>
+
+        <button type="submit" id="btn-entrar">Entrar</button>
+        <button type="button" id="btn-esqueci" class="link">Esqueci minha senha</button>
+      </form>
+      <p id="mensagem" role="alert"></p>
+    </section>
+
+    <section id="tela-app" hidden>
+      <p>Login feito com sucesso. Próximo passo: calendário do mês.</p>
+    </section>
   </main>
+
   <script type="module" src="app.js"></script>
 </body>
 </html>
