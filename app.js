@@ -5,6 +5,7 @@ import {
   signOut,
   sendPasswordResetEmail
 } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
+import { criarCalendario, deIso } from "./calendario.js";
 
 const $ = (id) => document.getElementById(id);
 
@@ -16,6 +17,8 @@ const emailInput = $("email");
 const senhaInput = $("senha");
 const mensagem = $("mensagem");
 const btnEntrar = $("btn-entrar");
+
+let calendario = null;
 
 function mostrarMensagem(texto, ok = false) {
   mensagem.textContent = texto;
@@ -37,6 +40,24 @@ function traduzirErro(erro) {
     default:
       return "Erro: " + erro.message;
   }
+}
+
+function mostrarDia(iso) {
+  const texto = deIso(iso).toLocaleDateString("pt-BR", {
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+    year: "numeric"
+  });
+  $("dia-titulo").textContent = texto;
+}
+
+function iniciarCalendario() {
+  if (calendario) return;
+  calendario = criarCalendario($("calendario"), {
+    aoSelecionar: mostrarDia,
+    aoMudarMes: () => {}
+  });
 }
 
 $("form-login").addEventListener("submit", async (e) => {
@@ -78,6 +99,7 @@ onAuthStateChanged(
       telaApp.hidden = false;
       barra.hidden = false;
       $("usuario-email").textContent = user.email;
+      iniciarCalendario();
     } else {
       telaApp.hidden = true;
       barra.hidden = true;

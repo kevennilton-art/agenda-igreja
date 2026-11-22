@@ -98,3 +98,84 @@ button {
 #mensagem.ok {
   color: #1b6e2d;
 }
+
+/* Calendário */
+.cal-nav {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.cal-nav strong {
+  font-size: 1.1rem;
+}
+
+.cal-nav button {
+  width: 44px;
+  height: 44px;
+  font-size: 1.4rem;
+  background: #fff;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.cal-grade {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 4px;
+}
+
+.cal-cab {
+  text-align: center;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #666;
+  padding: 4px 0;
+}
+
+.cal-dia {
+  position: relative;
+  aspect-ratio: 1;
+  background: #fff;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  font-size: 1rem;
+  cursor: pointer;
+}
+
+.cal-dia.hoje {
+  border: 2px solid #5b4b8a;
+  font-weight: 700;
+}
+
+.cal-dia.selecionado {
+  background: #5b4b8a;
+  color: #fff;
+}
+
+.cal-dia.marcado::after {
+  content: "";
+  position: absolute;
+  bottom: 5px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #e07a1f;
+}
+
+#dia-detalhe {
+  margin-top: 16px;
+  padding: 12px;
+  background: #fff;
+  border-radius: 8px;
+}
+
+#dia-detalhe h3 {
+  margin: 0 0 8px;
+  font-size: 1rem;
+  text-transform: capitalize;
+}
