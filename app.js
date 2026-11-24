@@ -7,6 +7,12 @@ import {
 } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
 import { criarCalendario, deIso, paraIso } from "./calendario.js";
 import { ouvirMes, criarEvento, atualizarEvento, excluirEvento } from "./eventos.js";
+import {
+  ouvirEspeciais,
+  criarEspecial,
+  atualizarEspecial,
+  excluirEspecial
+} from "./especiais.js";
 
 const $ = (id) => document.getElementById(id);
 
@@ -40,10 +46,13 @@ function esconderSplash() {
 let usuario = null;
 let calendario = null;
 let selecionado = paraIso(new Date());
-let eventosMes = [];
+let eventosMes = [];          // aulas do mês exibido
+let especiais = [];           // todos os eventos especiais
 let mesAtual = { ano: new Date().getFullYear(), mes: new Date().getMonth() };
 let pararEscuta = null;
+let pararEscutaEsp = null;
 let editandoId = null;
+let editandoEspId = null;
 
 // ---------- Utilidades ----------
 function mostrarMensagem(el, texto, ok = false) {
@@ -78,13 +87,44 @@ function formatarCurto(iso) {
   });
 }
 
+// Aviso rápido com a ovelhinha (some sozinho)
+function mostrarToast(texto) {
+  const antigo = $("toast");
+  if (antigo) antigo.remove();
+  const toast = document.createElement("div");
+  toast.id = "toast";
+  toast.setAttribute("role", "status");
+  const img = document.createElement("img");
+  img.src = "ovelha-cabeca.png";
+  img.alt = "";
+  const span = document.createElement("span");
+  span.textContent = texto;
+  toast.append(img, span);
+  document.body.append(toast);
+  setTimeout(() => toast.remove(), 2400);
+}
+
+// Mensagem de "nada por aqui" com a ovelhinha
+function criarVazio(texto) {
+  const caixa = document.createElement("div");
+  caixa.className = "vazio-ovelha";
+  const img = document.createElement("img");
+  img.src = "ovelha-cabeca.png";
+  img.alt = "";
+  const p = document.createElement("p");
+  p.textContent = texto;
+  caixa.append(img, p);
+  return caixa;
+}
+
 // ---------- Navegação ----------
-function irPara(nome) {
+// nome: qual tela abrir; navAtivo: qual botão da barra fica destacado
+function irPara(nome, navAtivo = nome) {
   document.querySelectorAll(".view").forEach((v) => {
     v.hidden = v.id !== "view-" + nome;
   });
   document.querySelectorAll("#barra-nav button").forEach((b) => {
-    b.classList.toggle("ativo", b.dataset.view === nome);
+    b.classList.toggle("ativo", b.dataset.view === navAtivo);
   });
   window.scrollTo(0, 0);
 }
@@ -96,7 +136,7 @@ document.querySelectorAll("#barra-nav button").forEach((b) => {
   });
 });
 
-// ---------- Professoras (sugestões de nomes) ----------
+// ---------- Nomes (sugestões para professoras e responsáveis) ----------
 const CHAVE_NOMES = "mimp-professoras";
 
 function lerNomesSalvos() {
@@ -124,20 +164,21 @@ function lembrarNomes(texto) {
     const todos = unicos([...lerNomesSalvos(), ...separarNomes(texto)]);
     localStorage.setItem(CHAVE_NOMES, JSON.stringify(todos));
   } catch (e) {
-    /* sem armazenamento local: as sugestões vêm só das aulas do mês */
+    /* sem armazenamento local: as sugestões vêm só dos dados já carregados */
   }
 }
 
 function nomesConhecidos() {
   return unicos([
     ...lerNomesSalvos(),
-    ...eventosMes.flatMap((e) => separarNomes(e.professoras))
+    ...eventosMes.flatMap((e) => separarNomes(e.professoras)),
+    ...especiais.flatMap((e) => separarNomes(e.responsaveis))
   ]).sort((a, b) => a.localeCompare(b, "pt-BR"));
 }
 
-function desenharSugestoes() {
-  const campo = $("ev-professoras");
-  const caixa = $("sugestoes-professoras");
+function desenharSugestoes(campoId, caixaId) {
+  const campo = $(campoId);
+  const caixa = $(caixaId);
   const usados = separarNomes(campo.value).map((n) => n.toLowerCase());
   caixa.textContent = "";
   nomesConhecidos()
@@ -151,13 +192,13 @@ function desenharSugestoes() {
         const atuais = separarNomes(campo.value);
         atuais.push(nome);
         campo.value = atuais.join(", ");
-        desenharSugestoes();
+        desenharSugestoes(campoId, caixaId);
       });
       caixa.append(b);
     });
 }
 
-// ---------- Cartões e listas ----------
+// ---------- Cartões: aulas ----------
 function criarCartao(ev, comData) {
   const cartao = document.createElement("button");
   cartao.type = "button";
@@ -189,15 +230,60 @@ function criarCartao(ev, comData) {
 function preencherLista(container, lista, comData, vazio) {
   container.textContent = "";
   if (lista.length === 0) {
-    const p = document.createElement("p");
-    p.className = "vazio";
-    p.textContent = vazio;
-    container.append(p);
+    container.append(criarVazio(vazio));
     return;
   }
   lista.forEach((ev) => container.append(criarCartao(ev, comData)));
 }
 
+// ---------- Cartões: eventos especiais ----------
+function porDataHora(a, b) {
+  return (a.data + (a.hora || "")).localeCompare(b.data + (b.hora || ""));
+}
+
+function criarCartaoEspecial(ev, comData) {
+  const cartao = document.createElement("button");
+  cartao.type = "button";
+  cartao.className = "cartao especial";
+
+  const titulo = document.createElement("strong");
+  titulo.textContent = ev.titulo;
+  cartao.append(titulo);
+
+  const quando = [];
+  if (comData) quando.push(formatarCurto(ev.data));
+  if (ev.hora) quando.push(ev.hora);
+  if (quando.length) {
+    const q = document.createElement("span");
+    q.className = "meta destaque";
+    q.textContent = quando.join(" · ");
+    cartao.append(q);
+  }
+
+  [
+    ["Local: ", ev.local],
+    ["Responsável(is): ", ev.responsaveis]
+  ].forEach(([rotulo, valor]) => {
+    if (!valor) return;
+    const s = document.createElement("span");
+    s.className = "meta";
+    s.textContent = rotulo + valor;
+    cartao.append(s);
+  });
+
+  if (ev.descricao) {
+    const d = document.createElement("span");
+    d.className = "meta resumo";
+    d.textContent =
+      ev.descricao.length > 110 ? ev.descricao.slice(0, 110).trim() + "…" : ev.descricao;
+    cartao.append(d);
+  }
+
+  cartao.addEventListener("click", () => abrirFormEspecial(ev));
+  return cartao;
+}
+
+// ---------- Telas ----------
 function renderDia() {
   $("dia-titulo").textContent = deIso(selecionado).toLocaleDateString("pt-BR", {
     weekday: "long",
@@ -207,6 +293,11 @@ function renderDia() {
   });
   const doDia = eventosMes.filter((e) => e.data === selecionado);
   preencherLista($("dia-eventos"), doDia, false, "Nenhuma aula neste dia.");
+
+  const espDoDia = especiais.filter((e) => e.data === selecionado).sort(porDataHora);
+  $("dia-especiais-bloco").hidden = espDoDia.length === 0;
+  $("dia-especiais").textContent = "";
+  espDoDia.forEach((e) => $("dia-especiais").append(criarCartaoEspecial(e, false)));
 }
 
 function renderLista() {
@@ -214,10 +305,35 @@ function renderLista() {
   preencherLista($("lista-mes"), eventosMes, true, "Nenhuma aula neste mês.");
 }
 
+function renderEspeciais() {
+  const hoje = paraIso(new Date());
+  const proximos = especiais.filter((e) => e.data >= hoje).sort(porDataHora);
+  const passados = especiais.filter((e) => e.data < hoje).sort(porDataHora).reverse();
+
+  const boxProx = $("esp-proximos");
+  boxProx.textContent = "";
+  if (proximos.length === 0) {
+    boxProx.append(criarVazio("Nenhum evento especial por vir."));
+  } else {
+    proximos.forEach((e) => boxProx.append(criarCartaoEspecial(e, true)));
+  }
+
+  $("esp-passados-bloco").hidden = passados.length === 0;
+  const boxPas = $("esp-passados");
+  boxPas.textContent = "";
+  passados.forEach((e) => boxPas.append(criarCartaoEspecial(e, true)));
+}
+
 function renderTudo() {
   renderDia();
   renderLista();
-  if (calendario) calendario.marcarDias(eventosMes.map((e) => e.data));
+  renderEspeciais();
+  if (calendario) {
+    calendario.marcarDias(
+      eventosMes.map((e) => e.data),
+      especiais.map((e) => e.data)
+    );
+  }
 }
 
 // ---------- Firestore (tempo real) ----------
@@ -238,7 +354,25 @@ function escutar(ano, mes) {
   );
 }
 
+function escutarEspeciais() {
+  if (pararEscutaEsp) pararEscutaEsp();
+  pararEscutaEsp = ouvirEspeciais(
+    (lista) => {
+      especiais = lista;
+      $("aviso-especiais").textContent = "";
+      renderTudo();
+    },
+    (erro) => {
+      $("aviso-especiais").textContent =
+        erro.code === "permission-denied"
+          ? "Sem permissão para os eventos especiais. Atualize as regras do Firestore (coleção \"especiais\")."
+          : "Erro ao carregar eventos: " + traduzirErro(erro);
+    }
+  );
+}
+
 function iniciarCalendario() {
+  escutarEspeciais();
   if (calendario) {
     escutar(mesAtual.ano, mesAtual.mes);
     return;
@@ -252,7 +386,7 @@ function iniciarCalendario() {
   });
 }
 
-// ---------- Formulário de evento ----------
+// ---------- Formulário da aula ----------
 function abrirForm(ev) {
   editandoId = ev ? ev.id : null;
   $("form-titulo").textContent = ev ? "Editar aula" : "Nova aula";
@@ -267,7 +401,7 @@ function abrirForm(ev) {
   $("ev-realizado").checked = ev ? !!ev.realizado : false;
   $("btn-excluir").hidden = !ev;
   mostrarMensagem($("form-msg"), "");
-  desenharSugestoes();
+  desenharSugestoes("ev-professoras", "sugestoes-professoras");
   irPara("form");
 }
 
@@ -292,6 +426,7 @@ $("form-evento").addEventListener("submit", async (e) => {
     if (editandoId) await atualizarEvento(editandoId, dados, usuario.email);
     else await criarEvento(dados, usuario.email);
     irPara("calendario");
+    mostrarToast("Aula salva!");
   } catch (erro) {
     mostrarMensagem($("form-msg"), traduzirErro(erro));
   } finally {
@@ -307,13 +442,80 @@ $("btn-excluir").addEventListener("click", async () => {
   try {
     await excluirEvento(editandoId);
     irPara("calendario");
+    mostrarToast("Aula excluída.");
   } catch (erro) {
     mostrarMensagem($("form-msg"), traduzirErro(erro));
   }
 });
 
 $("btn-novo-dia").addEventListener("click", () => abrirForm(null));
-$("ev-professoras").addEventListener("input", desenharSugestoes);
+$("ev-professoras").addEventListener("input", () =>
+  desenharSugestoes("ev-professoras", "sugestoes-professoras")
+);
+
+// ---------- Formulário do evento especial ----------
+function abrirFormEspecial(ev, dataPadrao) {
+  editandoEspId = ev ? ev.id : null;
+  $("esp-form-titulo").textContent = ev ? "Editar evento especial" : "Novo evento especial";
+  $("es-data").value = ev ? ev.data : dataPadrao || selecionado;
+  $("es-hora").value = ev ? ev.hora || "" : "";
+  $("es-titulo").value = ev ? ev.titulo : "";
+  $("es-descricao").value = ev ? ev.descricao || "" : "";
+  $("es-local").value = ev ? ev.local || "" : "";
+  $("es-responsaveis").value = ev ? ev.responsaveis || "" : "";
+  $("es-observacoes").value = ev ? ev.observacoes || "" : "";
+  $("btn-excluir-esp").hidden = !ev;
+  mostrarMensagem($("form-esp-msg"), "");
+  desenharSugestoes("es-responsaveis", "sugestoes-responsaveis");
+  irPara("form-esp", "especiais");
+}
+
+$("form-especial").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const dados = {
+    data: $("es-data").value,
+    hora: $("es-hora").value,
+    titulo: $("es-titulo").value.trim(),
+    descricao: $("es-descricao").value.trim(),
+    local: $("es-local").value.trim(),
+    responsaveis: separarNomes($("es-responsaveis").value).join(", "),
+    observacoes: $("es-observacoes").value.trim()
+  };
+  if (!dados.data || !dados.titulo) return;
+  lembrarNomes(dados.responsaveis);
+
+  $("btn-salvar-esp").disabled = true;
+  try {
+    if (editandoEspId) await atualizarEspecial(editandoEspId, dados, usuario.email);
+    else await criarEspecial(dados, usuario.email);
+    irPara("especiais");
+    mostrarToast("Evento salvo!");
+  } catch (erro) {
+    mostrarMensagem($("form-esp-msg"), traduzirErro(erro));
+  } finally {
+    $("btn-salvar-esp").disabled = false;
+  }
+});
+
+$("btn-cancelar-esp").addEventListener("click", () => irPara("especiais"));
+
+$("btn-excluir-esp").addEventListener("click", async () => {
+  if (!editandoEspId) return;
+  if (!confirm("Excluir este evento? As duas vão deixar de vê-lo.")) return;
+  try {
+    await excluirEspecial(editandoEspId);
+    irPara("especiais");
+    mostrarToast("Evento excluído.");
+  } catch (erro) {
+    mostrarMensagem($("form-esp-msg"), traduzirErro(erro));
+  }
+});
+
+$("btn-novo-especial").addEventListener("click", () => abrirFormEspecial(null));
+$("btn-novo-esp-dia").addEventListener("click", () => abrirFormEspecial(null, selecionado));
+$("es-responsaveis").addEventListener("input", () =>
+  desenharSugestoes("es-responsaveis", "sugestoes-responsaveis")
+);
 
 // ---------- Login ----------
 const emailInput = $("email");
@@ -373,7 +575,12 @@ onAuthStateChanged(
         pararEscuta();
         pararEscuta = null;
       }
+      if (pararEscutaEsp) {
+        pararEscutaEsp();
+        pararEscutaEsp = null;
+      }
       eventosMes = [];
+      especiais = [];
       $("tela-app").hidden = true;
       $("barra-nav").hidden = true;
       $("tela-login").hidden = false;

@@ -26,6 +26,7 @@ export function criarCalendario(container, { aoSelecionar, aoMudarMes } = {}) {
   let mes = hoje.getMonth();
   let selecionado = paraIso(hoje);
   let marcados = new Set();
+  let marcadosEsp = new Set();
 
   function mudarMes(delta) {
     mes += delta;
@@ -90,6 +91,7 @@ export function criarCalendario(container, { aoSelecionar, aoMudarMes } = {}) {
       if (iso === hojeIso) botao.classList.add("hoje");
       if (iso === selecionado) botao.classList.add("selecionado");
       if (marcados.has(iso)) botao.classList.add("marcado");
+      if (marcadosEsp.has(iso)) botao.classList.add("marcado-esp");
       botao.addEventListener("click", () => {
         selecionado = iso;
         desenhar();
@@ -106,8 +108,10 @@ export function criarCalendario(container, { aoSelecionar, aoMudarMes } = {}) {
   if (aoMudarMes) aoMudarMes(ano, mes);
 
   return {
-    marcarDias(conjunto) {
-      marcados = new Set(conjunto);
+    // aulas: dias com aula (bolinha verde); especiais: dias com evento (bolinha amarela)
+    marcarDias(aulas, especiais = []) {
+      marcados = new Set(aulas);
+      marcadosEsp = new Set(especiais);
       desenhar();
     },
     getSelecionado() {

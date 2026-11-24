@@ -27,7 +27,11 @@
   <main>
     <p id="carregando">Carregando...</p>
 
+    <!-- Login -->
     <section id="tela-login" hidden>
+      <img src="deco-sol.png" alt="" class="deco deco-sol">
+      <img src="deco-nuvem.png" alt="" class="deco deco-nuvem">
+      <img src="deco-nuvem.png" alt="" class="deco deco-nuvem2">
       <div class="login-marca">
         <img src="ovelha.png" alt="" class="login-ovelha">
         <img src="logo-colorido.png" alt="MIMP - Ministério Infantil Maanaim Piranji" class="login-logo">
@@ -52,20 +56,30 @@
       <!-- Calendário -->
       <section id="view-calendario" class="view">
         <div id="calendario"></div>
+        <div class="legenda">
+          <span class="ponto ponto-aula"></span> Aula
+          <span class="ponto ponto-evento"></span> Evento especial
+        </div>
         <div id="dia-detalhe">
+          <div class="espia"><img src="ovelha-cabeca.png" alt=""></div>
           <h3 id="dia-titulo"></h3>
           <div id="dia-eventos"></div>
+          <div id="dia-especiais-bloco" hidden>
+            <h4 class="subtitulo">Evento especial</h4>
+            <div id="dia-especiais"></div>
+          </div>
           <button type="button" id="btn-novo-dia" class="primario">+ Nova aula neste dia</button>
+          <button type="button" id="btn-novo-esp-dia" class="secundario">+ Evento especial neste dia</button>
         </div>
       </section>
 
-      <!-- Lista do mês -->
+      <!-- Lista do mês (aulas) -->
       <section id="view-lista" class="view" hidden>
         <h2 id="lista-titulo"></h2>
         <div id="lista-mes"></div>
       </section>
 
-      <!-- Formulário -->
+      <!-- Formulário da aula -->
       <section id="view-form" class="view" hidden>
         <h2 id="form-titulo">Nova aula</h2>
         <form id="form-evento">
@@ -109,10 +123,61 @@
         <p id="form-msg" role="alert"></p>
       </section>
 
+      <!-- Eventos especiais -->
+      <section id="view-especiais" class="view" hidden>
+        <h2>Eventos especiais</h2>
+        <p id="aviso-especiais" role="alert"></p>
+        <button type="button" id="btn-novo-especial" class="primario">+ Novo evento especial</button>
+
+        <h3 class="subtitulo">Próximos</h3>
+        <div id="esp-proximos"></div>
+
+        <div id="esp-passados-bloco" hidden>
+          <h3 class="subtitulo">Já realizados</h3>
+          <div id="esp-passados"></div>
+        </div>
+      </section>
+
+      <!-- Formulário do evento especial -->
+      <section id="view-form-esp" class="view" hidden>
+        <h2 id="esp-form-titulo">Novo evento especial</h2>
+        <form id="form-especial">
+          <label for="es-data">Data</label>
+          <input id="es-data" type="date" required>
+
+          <label for="es-hora">Horário</label>
+          <input id="es-hora" type="time">
+
+          <label for="es-titulo">Título</label>
+          <input id="es-titulo" type="text" maxlength="120" required>
+
+          <label for="es-descricao">Descrição</label>
+          <textarea id="es-descricao" rows="4"></textarea>
+
+          <label for="es-local">Local</label>
+          <input id="es-local" type="text" maxlength="150">
+
+          <label for="es-responsaveis">Responsável(is)</label>
+          <input id="es-responsaveis" type="text" maxlength="150" autocomplete="off" placeholder="Ex.: Maria, Joana">
+          <div id="sugestoes-responsaveis" class="sugestoes"></div>
+
+          <label for="es-observacoes">Observações</label>
+          <textarea id="es-observacoes" rows="3"></textarea>
+
+          <button type="submit" id="btn-salvar-esp" class="primario">Salvar</button>
+          <button type="button" id="btn-cancelar-esp" class="secundario">Cancelar</button>
+          <button type="button" id="btn-excluir-esp" class="perigo" hidden>Excluir evento</button>
+        </form>
+        <p id="form-esp-msg" role="alert"></p>
+      </section>
+
       <!-- Conta -->
       <section id="view-conta" class="view" hidden>
-        <h2>Conta</h2>
-        <p>Logada como <strong id="usuario-email"></strong></p>
+        <div class="conta-marca">
+          <img src="ovelha.png" alt="" class="conta-ovelha">
+          <h2>Conta</h2>
+          <p>Logada como <strong id="usuario-email"></strong></p>
+        </div>
         <button type="button" id="btn-sair" class="primario">Sair</button>
       </section>
     </div>
@@ -122,6 +187,7 @@
     <button type="button" data-view="calendario" class="ativo"><span>📅</span>Calendário</button>
     <button type="button" data-view="lista"><span>📋</span>Do mês</button>
     <button type="button" data-view="form" id="nav-novo"><span>➕</span>Nova aula</button>
+    <button type="button" data-view="especiais"><span>🎉</span>Eventos</button>
     <button type="button" data-view="conta"><span>👤</span>Conta</button>
   </nav>
 

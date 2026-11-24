@@ -160,6 +160,22 @@ h2 { font-size: 1.25rem; margin: 0 0 12px; color: var(--azul-escuro); }
 
 #tela-login h2 { text-align: center; }
 
+/* Céu com sol e nuvens atrás do login */
+#tela-login {
+  position: relative;
+  overflow: hidden;
+  padding: 16px;
+  border-radius: 20px;
+  background: linear-gradient(#DDEBFB, var(--fundo) 55%);
+}
+
+#tela-login > :not(.deco) { position: relative; z-index: 1; }
+
+.deco { position: absolute; z-index: 0; height: auto; }
+.deco-sol { width: 64px; top: 10px; left: 10px; }
+.deco-nuvem { width: 96px; top: 16px; right: 8px; }
+.deco-nuvem2 { width: 62px; top: 112px; left: 4px; opacity: 0.9; transform: scaleX(-1); }
+
 /* ===== Formulários ===== */
 form {
   display: flex;
@@ -290,22 +306,56 @@ button { font: inherit; }
 .cal-dia.hoje { background: var(--amarelo); border-color: #E8BE3F; font-weight: 700; }
 .cal-dia.selecionado { background: var(--azul-escuro); border-color: var(--azul-escuro); color: #fff; }
 
-.cal-dia.marcado::after {
+/* Bolinhas: verde = aula, amarela = evento especial (lado a lado quando há as duas) */
+.cal-dia.marcado::after,
+.cal-dia.marcado-esp::before {
   content: "";
   position: absolute;
   bottom: 5px;
   left: 50%;
   transform: translateX(-50%);
-  width: 7px;
-  height: 7px;
+  width: 8px;
+  height: 8px;
   border-radius: 50%;
+}
+
+.cal-dia.marcado::after {
   background: var(--verde);
   box-shadow: 0 0 0 1.5px #fff;
 }
 
+.cal-dia.marcado-esp::before {
+  background: var(--amarelo);
+  box-shadow: 0 0 0 1.5px #B88A00;
+}
+
+.cal-dia.marcado.marcado-esp::after { left: calc(50% - 6px); }
+.cal-dia.marcado.marcado-esp::before { left: calc(50% + 6px); }
+
+.legenda {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 10px;
+  font-size: 0.8rem;
+  color: #55607A;
+}
+
+.ponto {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+}
+
+.ponto-aula { background: var(--verde); }
+.ponto-evento { background: var(--amarelo); box-shadow: 0 0 0 1.5px #B88A00; margin-left: 10px; }
+
 /* ===== Detalhe do dia e cartões ===== */
 #dia-detalhe {
-  margin-top: 16px;
+  position: relative;
+  margin-top: 40px;
   padding: 14px;
   background: #fff;
   border: 1px solid var(--borda);
@@ -346,6 +396,93 @@ button { font: inherit; }
 }
 
 .vazio { color: #55607A; margin: 4px 0 12px; }
+
+/* Ovelhinha espiando por trás do cartão do dia */
+.espia {
+  position: absolute;
+  top: -31px;
+  right: 22px;
+  width: 64px;
+  height: 31px;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.espia img { width: 64px; height: auto; display: block; }
+
+/* Estado vazio com a ovelhinha */
+.vazio-ovelha {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 8px 0 14px;
+  color: #55607A;
+  text-align: center;
+}
+
+.vazio-ovelha img { width: 72px; height: auto; }
+.vazio-ovelha p { margin: 0; }
+
+.subtitulo {
+  font-family: var(--fonte-titulo);
+  font-weight: 600;
+  font-size: 1rem;
+  color: var(--roxo-escuro);
+  margin: 14px 0 8px;
+}
+
+h3.subtitulo { margin-top: 18px; }
+
+/* Eventos especiais */
+.cartao.especial { border-left-color: var(--roxo); }
+.cartao .meta.destaque { color: var(--roxo-escuro); font-weight: 700; }
+.cartao .meta.resumo { margin-top: 2px; }
+
+#view-especiais > .primario { margin-bottom: 4px; }
+#dia-detalhe .secundario { margin-top: 8px; }
+
+/* Aviso "Aula salva!" com a ovelhinha */
+#toast {
+  position: fixed;
+  left: 50%;
+  bottom: calc(84px + env(safe-area-inset-bottom));
+  transform: translateX(-50%);
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 18px 8px 10px;
+  background: #fff;
+  color: var(--texto);
+  font-weight: 700;
+  border: 2px solid var(--azul);
+  border-radius: 999px;
+  box-shadow: 0 6px 18px rgba(40, 80, 140, 0.25);
+  animation: toast 2.4s ease both;
+  white-space: nowrap;
+}
+
+#toast img { width: 38px; height: auto; }
+
+@keyframes toast {
+  0%   { opacity: 0; transform: translate(-50%, 20px); }
+  12%  { opacity: 1; transform: translate(-50%, 0); }
+  85%  { opacity: 1; transform: translate(-50%, 0); }
+  100% { opacity: 0; transform: translate(-50%, 10px); }
+}
+
+/* Tela Conta */
+.conta-marca {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  margin-bottom: 12px;
+}
+
+.conta-ovelha { width: 150px; height: auto; margin-bottom: 6px; }
+.conta-marca p { margin: 0 0 8px; }
 
 #lista-mes .cartao { background: #fff; }
 
