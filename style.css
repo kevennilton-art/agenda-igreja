@@ -194,6 +194,23 @@ button { font: inherit; }
 
 .vazio { color: #666; margin: 4px 0 12px; }
 
+/* Sugestões de professoras */
+.sugestoes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.chip {
+  padding: 6px 12px;
+  background: #e4e0ef;
+  color: #3b2f63;
+  border: none;
+  border-radius: 999px;
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+
 #lista-mes .cartao { background: #fff; }
 
 /* Barra de navegação inferior */

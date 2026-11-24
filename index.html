@@ -42,7 +42,7 @@
         <div id="dia-detalhe">
           <h3 id="dia-titulo"></h3>
           <div id="dia-eventos"></div>
-          <button type="button" id="btn-novo-dia" class="primario">+ Novo evento neste dia</button>
+          <button type="button" id="btn-novo-dia" class="primario">+ Nova aula neste dia</button>
         </div>
       </section>
 
@@ -54,13 +54,17 @@
 
       <!-- Formulário -->
       <section id="view-form" class="view" hidden>
-        <h2 id="form-titulo">Novo evento</h2>
+        <h2 id="form-titulo">Nova aula</h2>
         <form id="form-evento">
           <label for="ev-data">Data</label>
           <input id="ev-data" type="date" required>
 
           <label for="ev-titulo">Título</label>
           <input id="ev-titulo" type="text" maxlength="120" required>
+
+          <label for="ev-professoras">Professora(s) do dia</label>
+          <input id="ev-professoras" type="text" maxlength="150" autocomplete="off" placeholder="Ex.: Maria, Joana">
+          <div id="sugestoes-professoras" class="sugestoes"></div>
 
           <label for="ev-publico">Público</label>
           <select id="ev-publico">
@@ -82,12 +86,12 @@
           <textarea id="ev-observacoes" rows="3"></textarea>
 
           <label class="check">
-            <input id="ev-realizado" type="checkbox"> Evento realizado
+            <input id="ev-realizado" type="checkbox"> Aula realizada
           </label>
 
           <button type="submit" id="btn-salvar" class="primario">Salvar</button>
           <button type="button" id="btn-cancelar" class="secundario">Cancelar</button>
-          <button type="button" id="btn-excluir" class="perigo" hidden>Excluir evento</button>
+          <button type="button" id="btn-excluir" class="perigo" hidden>Excluir aula</button>
         </form>
         <p id="form-msg" role="alert"></p>
       </section>
@@ -104,7 +108,7 @@
   <nav id="barra-nav" hidden>
     <button type="button" data-view="calendario" class="ativo"><span>📅</span>Calendário</button>
     <button type="button" data-view="lista"><span>📋</span>Do mês</button>
-    <button type="button" data-view="form" id="nav-novo"><span>➕</span>Novo</button>
+    <button type="button" data-view="form" id="nav-novo"><span>➕</span>Nova aula</button>
     <button type="button" data-view="conta"><span>👤</span>Conta</button>
   </nav>
 

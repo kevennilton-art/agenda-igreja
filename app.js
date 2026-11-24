@@ -80,6 +80,67 @@ document.querySelectorAll("#barra-nav button").forEach((b) => {
   });
 });
 
+// ---------- Professoras (sugestões de nomes) ----------
+const CHAVE_NOMES = "mimp-professoras";
+
+function lerNomesSalvos() {
+  try {
+    return JSON.parse(localStorage.getItem(CHAVE_NOMES)) || [];
+  } catch (e) {
+    return [];
+  }
+}
+
+function separarNomes(texto) {
+  return (texto || "").split(",").map((n) => n.trim()).filter(Boolean);
+}
+
+function unicos(lista) {
+  const mapa = new Map();
+  lista.forEach((n) => {
+    if (!mapa.has(n.toLowerCase())) mapa.set(n.toLowerCase(), n);
+  });
+  return [...mapa.values()];
+}
+
+function lembrarNomes(texto) {
+  try {
+    const todos = unicos([...lerNomesSalvos(), ...separarNomes(texto)]);
+    localStorage.setItem(CHAVE_NOMES, JSON.stringify(todos));
+  } catch (e) {
+    /* sem armazenamento local: as sugestões vêm só das aulas do mês */
+  }
+}
+
+function nomesConhecidos() {
+  return unicos([
+    ...lerNomesSalvos(),
+    ...eventosMes.flatMap((e) => separarNomes(e.professoras))
+  ]).sort((a, b) => a.localeCompare(b, "pt-BR"));
+}
+
+function desenharSugestoes() {
+  const campo = $("ev-professoras");
+  const caixa = $("sugestoes-professoras");
+  const usados = separarNomes(campo.value).map((n) => n.toLowerCase());
+  caixa.textContent = "";
+  nomesConhecidos()
+    .filter((n) => !usados.includes(n.toLowerCase()))
+    .forEach((nome) => {
+      const b = document.createElement("button");
+      b.type = "button";
+      b.className = "chip";
+      b.textContent = "+ " + nome;
+      b.addEventListener("click", () => {
+        const atuais = separarNomes(campo.value);
+        atuais.push(nome);
+        campo.value = atuais.join(", ");
+        desenharSugestoes();
+      });
+      caixa.append(b);
+    });
+}
+
 // ---------- Cartões e listas ----------
 function criarCartao(ev, comData) {
   const cartao = document.createElement("button");
@@ -94,10 +155,17 @@ function criarCartao(ev, comData) {
   const partes = [];
   if (comData) partes.push(formatarCurto(ev.data));
   partes.push(PUBLICOS[ev.publico] || "");
-  if (ev.realizado) partes.push("✓ Realizado");
+  if (ev.realizado) partes.push("✓ Realizada");
   meta.textContent = partes.filter(Boolean).join(" · ");
 
-  cartao.append(titulo, meta);
+  cartao.append(titulo);
+  if (ev.professoras) {
+    const prof = document.createElement("span");
+    prof.className = "meta";
+    prof.textContent = "Professora(s): " + ev.professoras;
+    cartao.append(prof);
+  }
+  cartao.append(meta);
   cartao.addEventListener("click", () => abrirForm(ev));
   return cartao;
 }
@@ -122,12 +190,12 @@ function renderDia() {
     year: "numeric"
   });
   const doDia = eventosMes.filter((e) => e.data === selecionado);
-  preencherLista($("dia-eventos"), doDia, false, "Nenhum evento neste dia.");
+  preencherLista($("dia-eventos"), doDia, false, "Nenhuma aula neste dia.");
 }
 
 function renderLista() {
   $("lista-titulo").textContent = `${MESES[mesAtual.mes]} ${mesAtual.ano}`;
-  preencherLista($("lista-mes"), eventosMes, true, "Nenhum evento neste mês.");
+  preencherLista($("lista-mes"), eventosMes, true, "Nenhuma aula neste mês.");
 }
 
 function renderTudo() {
@@ -149,7 +217,7 @@ function escutar(ano, mes) {
       renderTudo();
     },
     (erro) => {
-      $("aviso-eventos").textContent = "Erro ao carregar eventos: " + traduzirErro(erro);
+      $("aviso-eventos").textContent = "Erro ao carregar aulas: " + traduzirErro(erro);
     }
   );
 }
@@ -171,9 +239,10 @@ function iniciarCalendario() {
 // ---------- Formulário de evento ----------
 function abrirForm(ev) {
   editandoId = ev ? ev.id : null;
-  $("form-titulo").textContent = ev ? "Editar evento" : "Novo evento";
+  $("form-titulo").textContent = ev ? "Editar aula" : "Nova aula";
   $("ev-data").value = ev ? ev.data : selecionado;
   $("ev-titulo").value = ev ? ev.titulo : "";
+  $("ev-professoras").value = ev ? ev.professoras || "" : "";
   $("ev-publico").value = ev ? ev.publico || "ambos" : "criancas";
   $("ev-descricao").value = ev ? ev.descricao || "" : "";
   $("ev-materiais").value = ev ? ev.materiais || "" : "";
@@ -182,6 +251,7 @@ function abrirForm(ev) {
   $("ev-realizado").checked = ev ? !!ev.realizado : false;
   $("btn-excluir").hidden = !ev;
   mostrarMensagem($("form-msg"), "");
+  desenharSugestoes();
   irPara("form");
 }
 
@@ -190,6 +260,7 @@ $("form-evento").addEventListener("submit", async (e) => {
   const dados = {
     data: $("ev-data").value,
     titulo: $("ev-titulo").value.trim(),
+    professoras: separarNomes($("ev-professoras").value).join(", "),
     publico: $("ev-publico").value,
     descricao: $("ev-descricao").value.trim(),
     materiais: $("ev-materiais").value.trim(),
@@ -198,6 +269,7 @@ $("form-evento").addEventListener("submit", async (e) => {
     realizado: $("ev-realizado").checked
   };
   if (!dados.data || !dados.titulo) return;
+  lembrarNomes(dados.professoras);
 
   $("btn-salvar").disabled = true;
   try {
@@ -215,7 +287,7 @@ $("btn-cancelar").addEventListener("click", () => irPara("calendario"));
 
 $("btn-excluir").addEventListener("click", async () => {
   if (!editandoId) return;
-  if (!confirm("Excluir este evento? As duas vão deixar de vê-lo.")) return;
+  if (!confirm("Excluir esta aula? As duas vão deixar de vê-la.")) return;
   try {
     await excluirEvento(editandoId);
     irPara("calendario");
@@ -225,6 +297,7 @@ $("btn-excluir").addEventListener("click", async () => {
 });
 
 $("btn-novo-dia").addEventListener("click", () => abrirForm(null));
+$("ev-professoras").addEventListener("input", desenharSugestoes);
 
 // ---------- Login ----------
 const emailInput = $("email");
