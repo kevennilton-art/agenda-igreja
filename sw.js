@@ -1,6 +1,8 @@
 // Service worker simples: tenta a rede primeiro (sempre a versão mais nova)
 // e usa o cache só quando estiver sem internet.
-const CACHE = "agenda-igreja-v1";
+// "no-cache" faz o navegador confirmar com o servidor antes de reutilizar
+// a cópia guardada, para que atualizações apareçam logo no app.
+const CACHE = "agenda-igreja-v2";
 
 self.addEventListener("install", () => self.skipWaiting());
 
@@ -16,7 +18,7 @@ self.addEventListener("fetch", (e) => {
   const req = e.request;
   if (req.method !== "GET" || new URL(req.url).origin !== location.origin) return;
   e.respondWith(
-    fetch(req)
+    fetch(req, { cache: "no-cache" })
       .then((res) => {
         const copia = res.clone();
         caches.open(CACHE).then((c) => c.put(req, copia));
