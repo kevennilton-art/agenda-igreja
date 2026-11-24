@@ -20,6 +20,22 @@ const PUBLICOS = {
   ambos: "Crianças e mulheres"
 };
 
+// ---------- Tela de abertura (ovelhinha) ----------
+const SPLASH_MIN_MS = 2500;
+let splashEscondida = false;
+
+function esconderSplash() {
+  const splash = $("splash");
+  if (splashEscondida || !splash) return;
+  splashEscondida = true;
+  // performance.now() = tempo desde que a página começou a abrir
+  const falta = Math.max(0, SPLASH_MIN_MS - performance.now());
+  setTimeout(() => {
+    splash.classList.add("saindo");
+    setTimeout(() => splash.remove(), 500);
+  }, falta);
+}
+
 // ---------- Estado ----------
 let usuario = null;
 let calendario = null;
@@ -362,8 +378,10 @@ onAuthStateChanged(
       $("barra-nav").hidden = true;
       $("tela-login").hidden = false;
     }
+    esconderSplash();
   },
   (erro) => {
     $("carregando").textContent = "Erro ao conectar: " + erro.message;
+    esconderSplash();
   }
 );

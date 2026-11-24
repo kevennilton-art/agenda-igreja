@@ -3,22 +3,35 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="#5b4b8a">
+  <meta name="theme-color" content="#5D9EE7">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600&display=swap" rel="stylesheet">
   <link rel="manifest" href="manifest.json">
   <link rel="icon" href="icon-192.png">
   <link rel="apple-touch-icon" href="icon-192.png">
   <link rel="stylesheet" href="style.css">
-  <title>Agenda da Igreja</title>
+  <title>Planos MIMP</title>
 </head>
 <body>
+  <div id="splash" role="status" aria-label="Carregando">
+    <img id="splash-ovelha" src="ovelha.png" alt="">
+    <img id="splash-logo" src="logo-branco.png" alt="MIMP - Ministério Infantil Maanaim Piranji">
+    <div class="pontos"><span></span><span></span><span></span></div>
+  </div>
+
   <header>
-    <h1>Agenda da Igreja</h1>
+    <h1>Planos <img src="logo-branco-mimp.png" alt="MIMP" class="logo-header"></h1>
   </header>
 
   <main>
     <p id="carregando">Carregando...</p>
 
     <section id="tela-login" hidden>
+      <div class="login-marca">
+        <img src="ovelha.png" alt="" class="login-ovelha">
+        <img src="logo-colorido.png" alt="MIMP - Ministério Infantil Maanaim Piranji" class="login-logo">
+      </div>
       <h2>Entrar</h2>
       <form id="form-login">
         <label for="email">E-mail</label>
@@ -114,6 +127,11 @@
 
   <script type="module" src="app.js"></script>
   <script>
+    // Segurança: se algo falhar ao carregar, a tela de abertura some sozinha.
+    setTimeout(() => {
+      const s = document.getElementById("splash");
+      if (s) s.remove();
+    }, 12000);
     if ("serviceWorker" in navigator) {
       window.addEventListener("load", () => navigator.serviceWorker.register("sw.js"));
     }
