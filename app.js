@@ -13,6 +13,7 @@ import {
   atualizarEspecial,
   excluirEspecial
 } from "./especiais.js";
+import { montarEditorLinks, criarLinksCartao } from "./anexos.js";
 
 const $ = (id) => document.getElementById(id);
 
@@ -200,8 +201,9 @@ function desenharSugestoes(campoId, caixaId) {
 
 // ---------- Cartões: aulas ----------
 function criarCartao(ev, comData) {
-  const cartao = document.createElement("button");
-  cartao.type = "button";
+  const cartao = document.createElement("div");
+  cartao.setAttribute("role", "button");
+  cartao.tabIndex = 0;
   cartao.className = "cartao" + (ev.realizado ? " feito" : "");
 
   const titulo = document.createElement("strong");
@@ -223,7 +225,15 @@ function criarCartao(ev, comData) {
     cartao.append(prof);
   }
   cartao.append(meta);
+  const links = criarLinksCartao(ev);
+  if (links) cartao.append(links);
   cartao.addEventListener("click", () => abrirForm(ev));
+  cartao.addEventListener("keydown", (e) => {
+    if (e.key === "Enter" || e.key === " ") {
+      e.preventDefault();
+      abrirForm(ev);
+    }
+  });
   return cartao;
 }
 
@@ -242,8 +252,9 @@ function porDataHora(a, b) {
 }
 
 function criarCartaoEspecial(ev, comData) {
-  const cartao = document.createElement("button");
-  cartao.type = "button";
+  const cartao = document.createElement("div");
+  cartao.setAttribute("role", "button");
+  cartao.tabIndex = 0;
   cartao.className = "cartao especial";
 
   const titulo = document.createElement("strong");
@@ -279,7 +290,15 @@ function criarCartaoEspecial(ev, comData) {
     cartao.append(d);
   }
 
+  const links = criarLinksCartao(ev);
+  if (links) cartao.append(links);
   cartao.addEventListener("click", () => abrirFormEspecial(ev));
+  cartao.addEventListener("keydown", (e) => {
+    if (e.key === "Enter" || e.key === " ") {
+      e.preventDefault();
+      abrirFormEspecial(ev);
+    }
+  });
   return cartao;
 }
 
@@ -386,6 +405,20 @@ function iniciarCalendario() {
   });
 }
 
+// ---------- Anexos por link (YouTube e Drive) ----------
+const editorAula = montarEditorLinks({
+  videos: $("lista-videos"),
+  addVideo: $("add-video"),
+  arquivos: $("lista-arquivos"),
+  addArquivo: $("add-arquivo")
+});
+const editorEsp = montarEditorLinks({
+  videos: $("lista-videos-esp"),
+  addVideo: $("add-video-esp"),
+  arquivos: $("lista-arquivos-esp"),
+  addArquivo: $("add-arquivo-esp")
+});
+
 // ---------- Formulário da aula ----------
 function abrirForm(ev) {
   editandoId = ev ? ev.id : null;
@@ -402,6 +435,7 @@ function abrirForm(ev) {
   $("btn-excluir").hidden = !ev;
   mostrarMensagem($("form-msg"), "");
   desenharSugestoes("ev-professoras", "sugestoes-professoras");
+  editorAula.carregar(ev ? ev.videos : [], ev ? ev.arquivos : []);
   irPara("form");
 }
 
@@ -419,6 +453,13 @@ $("form-evento").addEventListener("submit", async (e) => {
     realizado: $("ev-realizado").checked
   };
   if (!dados.data || !dados.titulo) return;
+  const anexos = editorAula.ler();
+  if (anexos.erro) {
+    mostrarMensagem($("form-msg"), anexos.erro);
+    return;
+  }
+  dados.videos = anexos.videos;
+  dados.arquivos = anexos.arquivos;
   lembrarNomes(dados.professoras);
 
   $("btn-salvar").disabled = true;
@@ -467,6 +508,7 @@ function abrirFormEspecial(ev, dataPadrao) {
   $("btn-excluir-esp").hidden = !ev;
   mostrarMensagem($("form-esp-msg"), "");
   desenharSugestoes("es-responsaveis", "sugestoes-responsaveis");
+  editorEsp.carregar(ev ? ev.videos : [], ev ? ev.arquivos : []);
   irPara("form-esp", "especiais");
 }
 
@@ -482,6 +524,13 @@ $("form-especial").addEventListener("submit", async (e) => {
     observacoes: $("es-observacoes").value.trim()
   };
   if (!dados.data || !dados.titulo) return;
+  const anexos = editorEsp.ler();
+  if (anexos.erro) {
+    mostrarMensagem($("form-esp-msg"), anexos.erro);
+    return;
+  }
+  dados.videos = anexos.videos;
+  dados.arquivos = anexos.arquivos;
   lembrarNomes(dados.responsaveis);
 
   $("btn-salvar-esp").disabled = true;
