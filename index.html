@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
   <meta name="theme-color" content="#5D9EE7">
-  <meta name="color-scheme" content="light">
+  <meta name="color-scheme" content="light dark">
   <link rel="manifest" href="manifest.json">
   <link rel="icon" href="icon-192.png">
   <link rel="apple-touch-icon" href="icon-192.png">
@@ -55,9 +55,10 @@
       animation: pular 1s ease-in-out infinite;
     }
     
-    .pontos span:nth-child(1) { background: #FFDC73; }
-    .pontos span:nth-child(2) { background: #EAE2F4; animation-delay: 0.15s; }
-    .pontos span:nth-child(3) { background: #82C671; animation-delay: 0.3s; }
+    .pontos span:nth-child(1) { background: #fff; }
+    .pontos span:nth-child(2) { background: #FFDC73; animation-delay: 0.15s; }
+    .pontos span:nth-child(3) { background: #B36FFF; animation-delay: 0.3s; }
+    .pontos span:nth-child(4) { background: #65F07C; animation-delay: 0.45s; }
     
     @keyframes surgir {
       0%   { opacity: 0; transform: translateY(40px) scale(0.5); }
@@ -94,17 +95,19 @@
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600&display=swap">
     <link rel="stylesheet" href="style.css">
   </noscript>
+  <script>try{var t=localStorage.getItem("mimp-tema");if(!t)t=matchMedia("(prefers-color-scheme: dark)").matches?"escuro":"claro";document.documentElement.dataset.tema=t}catch(e){}</script>
   <title>Planos MIMP</title>
 </head>
 <body>
   <div id="splash" role="status" aria-label="Carregando">
-    <img id="splash-ovelha" src="ovelha.png" width="447" height="560" alt="">
-    <img id="splash-logo" src="logo-branco.png" width="760" height="251" alt="MIMP - Ministério Infantil Maanaim Piranji">
-    <div class="pontos"><span></span><span></span><span></span></div>
+    <img id="splash-ovelha" src="ovelha.png" width="447" height="560" alt="" style="width:min(46vw,220px);height:auto;max-width:100%">
+    <img id="splash-logo" src="logo-branco.png" width="760" height="251" style="width:min(72vw,320px);height:auto;max-width:100%" alt="MIMP - Ministério Infantil Maanaim Piranji">
+    <div class="pontos"><span></span><span></span><span></span><span></span></div>
   </div>
 
   <header>
     <h1>Planos <img src="logo-branco-mimp.png" alt="MIMP" class="logo-header"></h1>
+    <button type="button" id="btn-tema" aria-label="Ativar modo escuro"><img src="icone-lua.svg" alt=""></button>
   </header>
 
   <main>
@@ -112,7 +115,10 @@
 
     <!-- Login -->
     <section id="tela-login" hidden>
-      <img src="deco-sol.png" alt="" class="deco deco-sol">
+      <img src="icone-sol.svg" alt="" class="deco deco-sol" id="deco-sol">
+      <img src="icone-estrela.svg" alt="" class="deco deco-estrela e1">
+      <img src="icone-estrela.svg" alt="" class="deco deco-estrela e2">
+      <img src="icone-estrela.svg" alt="" class="deco deco-estrela e3">
       <img src="deco-nuvem.png" alt="" class="deco deco-nuvem">
       <img src="deco-nuvem.png" alt="" class="deco deco-nuvem2">
       <div class="login-marca">
@@ -290,15 +296,35 @@
   </main>
 
   <nav id="barra-nav" hidden>
-    <button type="button" data-view="calendario" class="ativo"><span>📅</span>Calendário</button>
-    <button type="button" data-view="lista"><span>📋</span>Do mês</button>
-    <button type="button" data-view="form" id="nav-novo"><span>➕</span>Nova aula</button>
-    <button type="button" data-view="especiais"><span>🎉</span>Eventos</button>
-    <button type="button" data-view="conta"><span>👤</span>Conta</button>
+    <button type="button" data-view="calendario" class="ativo"><img src="icone-calendario.svg" alt="">Calendário</button>
+    <button type="button" data-view="lista"><img src="icone-estrela.svg" alt="">Do mês</button>
+    <button type="button" data-view="form" id="nav-novo"><img src="icone-nova-aula.svg" alt="">Nova aula</button>
+    <button type="button" data-view="especiais"><img src="icone-eventos.svg" alt="">Eventos</button>
+    <button type="button" data-view="conta"><img src="icone-conta.svg" alt="">Conta</button>
   </nav>
 
   <script type="module" src="app.js"></script>
   <script>
+    // Modo claro/escuro (o tema inicial já foi aplicado no <head>)
+    (function () {
+      var btn = document.getElementById("btn-tema");
+      var meta = document.querySelector('meta[name="theme-color"]');
+      function mostrar() {
+        var escuro = document.documentElement.dataset.tema === "escuro";
+        btn.firstElementChild.src = escuro ? "icone-sol.svg" : "icone-lua.svg";
+        btn.setAttribute("aria-label", escuro ? "Ativar modo claro" : "Ativar modo escuro");
+        var sol = document.getElementById("deco-sol");
+        if (sol) sol.src = escuro ? "icone-lua.svg" : "icone-sol.svg";
+        if (meta) meta.setAttribute("content", escuro ? "#2F5A99" : "#5D9EE7");
+      }
+      btn.addEventListener("click", function () {
+        var novo = document.documentElement.dataset.tema === "escuro" ? "claro" : "escuro";
+        document.documentElement.dataset.tema = novo;
+        try { localStorage.setItem("mimp-tema", novo); } catch (e) {}
+        mostrar();
+      });
+      mostrar();
+    })();
     // Se algo falhar ao carregar, mostra o erro na tela em vez de ficar parado.
     function mostrarFalha(msg) {
       const s = document.getElementById("splash");
