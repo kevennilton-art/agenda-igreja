@@ -19,6 +19,15 @@
 
 [hidden] { display: none !important; }
 
+/* Depois que os estilos carregam, o fundo deixa de ser o azul da abertura */
+html { background: var(--fundo); }
+
+/* Nunca rola para os lados */
+html, body {
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
 /* Comportamento de aplicativo: sem seleção de texto na interface */
 html, body {
   -webkit-user-select: none;
@@ -329,6 +338,10 @@ button { font: inherit; }
 
 /* Anexos: campos no formulário */
 fieldset.anexos {
+  /* sem isto o fieldset cresce além da tela em celulares estreitos */
+  min-width: 0;
+  min-inline-size: 0;
+  width: 100%;
   margin: 10px 0 4px;
   padding: 8px 12px 12px;
   background: #fff;
@@ -353,7 +366,10 @@ fieldset.anexos legend {
 }
 
 .linha-url { display: flex; gap: 6px; align-items: stretch; }
-.linha-url input { flex: 1; min-width: 0; }
+.linha-link { min-width: 0; }
+.linha-url { min-width: 0; }
+.linha-url input { flex: 1 1 0; min-width: 0; width: 100%; }
+.linha-link .campo-nome { width: 100%; min-width: 0; }
 
 .linha-link .abrir,
 .linha-link .remover {
