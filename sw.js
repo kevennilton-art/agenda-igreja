@@ -2,7 +2,7 @@
 // e usa o cache só quando estiver sem internet.
 // "no-cache" faz o navegador confirmar com o servidor antes de reutilizar
 // a cópia guardada, para que atualizações apareçam logo no app.
-const CACHE = "agenda-igreja-v2";
+const CACHE = "agenda-igreja-v3";
 
 self.addEventListener("install", () => self.skipWaiting());
 

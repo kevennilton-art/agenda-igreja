@@ -2,21 +2,104 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
   <meta name="theme-color" content="#5D9EE7">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600&display=swap" rel="stylesheet">
+  <meta name="color-scheme" content="light">
   <link rel="manifest" href="manifest.json">
   <link rel="icon" href="icon-192.png">
   <link rel="apple-touch-icon" href="icon-192.png">
-  <link rel="stylesheet" href="style.css">
+  <link rel="preload" as="image" href="ovelha.png">
+  <link rel="preload" as="image" href="logo-branco.png">
+
+  <!-- Estilo mínimo embutido: a primeira tela (azul, com a ovelhinha) aparece na hora,
+       sem esperar o resto carregar -->
+  <style>
+    :root { color-scheme: light; }
+    html, body { margin: 0; background: #5D9EE7; }
+    /* ===== Tela de abertura ===== */
+    #splash {
+      position: fixed;
+      inset: 0;
+      z-index: 100;
+      background: #5D9EE7;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 22px;
+      transition: opacity 0.45s ease;
+    }
+    
+    #splash.saindo { opacity: 0; pointer-events: none; }
+    
+    #splash-ovelha {
+      width: min(46vw, 220px);
+      height: auto;
+      animation:
+        surgir 0.9s cubic-bezier(0.2, 0.9, 0.3, 1.3) both,
+        balancar 2.4s ease-in-out 0.9s infinite;
+    }
+    
+    #splash-logo {
+      width: min(72vw, 320px);
+      height: auto;
+      animation: aparecer 0.8s ease 0.6s both;
+    }
+    
+    .pontos { display: flex; gap: 10px; margin-top: 6px; animation: aparecer 0.6s ease 1s both; }
+    
+    .pontos span {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      animation: pular 1s ease-in-out infinite;
+    }
+    
+    .pontos span:nth-child(1) { background: #FFDC73; }
+    .pontos span:nth-child(2) { background: #EAE2F4; animation-delay: 0.15s; }
+    .pontos span:nth-child(3) { background: #82C671; animation-delay: 0.3s; }
+    
+    @keyframes surgir {
+      0%   { opacity: 0; transform: translateY(40px) scale(0.5); }
+      60%  { opacity: 1; transform: translateY(-10px) scale(1.06); }
+      100% { opacity: 1; transform: translateY(0) scale(1); }
+    }
+    
+    @keyframes balancar {
+      0%, 100% { transform: rotate(-2.5deg); }
+      50%      { transform: rotate(2.5deg); }
+    }
+    
+    @keyframes aparecer {
+      from { opacity: 0; transform: translateY(10px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    
+    @keyframes pular {
+      0%, 100% { transform: translateY(0); opacity: 0.7; }
+      50%      { transform: translateY(-8px); opacity: 1; }
+    }
+    
+    @media (prefers-reduced-motion: reduce) {
+      #splash-ovelha, #splash-logo, .pontos, .pontos span { animation: none; }
+    }
+  </style>
+
+  <!-- Estilos e fonte carregam sem travar a primeira tela -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600&display=swap" media="print" onload="this.media='all'">
+  <link rel="stylesheet" href="style.css" media="print" onload="this.media='all'">
+  <noscript>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600&display=swap">
+    <link rel="stylesheet" href="style.css">
+  </noscript>
   <title>Planos MIMP</title>
 </head>
 <body>
   <div id="splash" role="status" aria-label="Carregando">
-    <img id="splash-ovelha" src="ovelha.png" alt="">
-    <img id="splash-logo" src="logo-branco.png" alt="MIMP - Ministério Infantil Maanaim Piranji">
+    <img id="splash-ovelha" src="ovelha.png" width="447" height="560" alt="">
+    <img id="splash-logo" src="logo-branco.png" width="760" height="251" alt="MIMP - Ministério Infantil Maanaim Piranji">
     <div class="pontos"><span></span><span></span><span></span></div>
   </div>
 
@@ -119,7 +202,6 @@
 
           <fieldset class="anexos">
             <legend>📎 Arquivos do Drive (fotos, PDFs...)</legend>
-            <p class="dica">No Drive, toque em Compartilhar e deixe "Qualquer pessoa com o link" para as duas conseguirem abrir.</p>
             <div id="lista-arquivos"></div>
             <button type="button" id="add-arquivo" class="secundario pequeno">+ Adicionar arquivo</button>
           </fieldset>
@@ -184,7 +266,6 @@
 
           <fieldset class="anexos">
             <legend>📎 Arquivos do Drive (fotos, PDFs...)</legend>
-            <p class="dica">No Drive, toque em Compartilhar e deixe "Qualquer pessoa com o link" para as duas conseguirem abrir.</p>
             <div id="lista-arquivos-esp"></div>
             <button type="button" id="add-arquivo-esp" class="secundario pequeno">+ Adicionar arquivo</button>
           </fieldset>
@@ -218,13 +299,44 @@
 
   <script type="module" src="app.js"></script>
   <script>
-    // Segurança: se algo falhar ao carregar, a tela de abertura some sozinha.
+    // Se algo falhar ao carregar, mostra o erro na tela em vez de ficar parado.
+    function mostrarFalha(msg) {
+      const s = document.getElementById("splash");
+      if (s) s.remove();
+      const c = document.getElementById("carregando");
+      if (c && !c.hidden) {
+        c.textContent = "Não foi possível iniciar (" + msg + "). Toque aqui para tentar de novo.";
+        c.style.cursor = "pointer";
+        c.onclick = () => location.reload();
+      }
+    }
+    window.addEventListener("error", (e) => {
+      const alvo = e.target;
+      if (alvo && alvo.tagName === "SCRIPT") {
+        mostrarFalha("não carregou " + (alvo.src || "").split("/").pop());
+      } else if (e.message) {
+        mostrarFalha(e.message);
+      }
+    }, true);
+    window.addEventListener("unhandledrejection", (e) => {
+      mostrarFalha(String((e.reason && e.reason.message) || e.reason));
+    });
+    // Segurança: se o app não iniciar, a tela de abertura some sozinha.
     setTimeout(() => {
       const s = document.getElementById("splash");
       if (s) s.remove();
+      const c = document.getElementById("carregando");
+      if (c && !c.hidden) mostrarFalha("demorou demais");
     }, 12000);
+    // Sem zoom por pinça (iPhone e outros)
+    document.addEventListener("gesturestart", (e) => e.preventDefault());
+    document.addEventListener("touchmove", (e) => {
+      if (e.touches.length > 1) e.preventDefault();
+    }, { passive: false });
     if ("serviceWorker" in navigator) {
-      window.addEventListener("load", () => navigator.serviceWorker.register("sw.js"));
+      window.addEventListener("load", () => {
+        navigator.serviceWorker.register("sw.js", { updateViaCache: "none" });
+      });
     }
   </script>
 </body>

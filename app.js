@@ -28,7 +28,19 @@ const PUBLICOS = {
 };
 
 // ---------- Tela de abertura (ovelhinha) ----------
-const SPLASH_MIN_MS = 2500;
+// Depois de uma atualização automática a abertura é rápida e mostra "App atualizado!"
+const FLAG_RECARGA = "mimp-recarga";
+const veioDeAtualizacao = (() => {
+  try {
+    const v = sessionStorage.getItem(FLAG_RECARGA);
+    sessionStorage.removeItem(FLAG_RECARGA);
+    return !!v;
+  } catch (e) {
+    return false;
+  }
+})();
+
+const SPLASH_MIN_MS = veioDeAtualizacao ? 600 : 2500;
 let splashEscondida = false;
 
 function esconderSplash() {
@@ -40,8 +52,84 @@ function esconderSplash() {
   setTimeout(() => {
     splash.classList.add("saindo");
     setTimeout(() => splash.remove(), 500);
+    if (veioDeAtualizacao) setTimeout(() => mostrarToast("App atualizado!"), 400);
   }, falta);
 }
+
+// ---------- Atualização automática ----------
+// O app confere "versao.json" ao abrir, ao voltar para ele e a cada 5 minutos.
+// Se houver versão nova, recarrega sozinho (ou avisa, se houver formulário aberto).
+let versaoCarregada = null;
+let atualizando = false;
+
+async function lerVersao() {
+  try {
+    const r = await fetch("versao.json?t=" + Date.now(), { cache: "no-store" });
+    if (!r.ok) return null;
+    return (await r.json()).versao || null;
+  } catch (e) {
+    return null;
+  }
+}
+
+function formularioAberto() {
+  return !!document.querySelector("#view-form:not([hidden]), #view-form-esp:not([hidden])");
+}
+
+function recarregarComAtualizacao() {
+  if (atualizando) return;
+  atualizando = true;
+  try {
+    sessionStorage.setItem(FLAG_RECARGA, "1");
+  } catch (e) {
+    /* sem armazenamento: recarrega do mesmo jeito */
+  }
+  location.reload();
+}
+
+function mostrarFaixaAtualizacao() {
+  if ($("faixa-atualizacao")) return;
+  const faixa = document.createElement("button");
+  faixa.id = "faixa-atualizacao";
+  faixa.type = "button";
+  faixa.textContent = "Nova versão disponível. Toque para atualizar";
+  faixa.addEventListener("click", recarregarComAtualizacao);
+  document.body.append(faixa);
+}
+
+async function verificarAtualizacao() {
+  if (atualizando) return;
+  const atual = await lerVersao();
+  if (!atual) return;
+  if (versaoCarregada === null) {
+    versaoCarregada = atual;
+    return;
+  }
+  if (atual !== versaoCarregada) {
+    if (formularioAberto()) mostrarFaixaAtualizacao();
+    else recarregarComAtualizacao();
+  }
+}
+
+function pedirNovoServiceWorker() {
+  if (!("serviceWorker" in navigator)) return;
+  navigator.serviceWorker.getRegistration().then((r) => r && r.update()).catch(() => {});
+}
+
+verificarAtualizacao();
+document.addEventListener("visibilitychange", () => {
+  if (document.visibilityState === "visible") {
+    verificarAtualizacao();
+    pedirNovoServiceWorker();
+  }
+});
+window.addEventListener("pageshow", (e) => {
+  if (e.persisted) verificarAtualizacao();
+});
+window.addEventListener("online", verificarAtualizacao);
+setInterval(() => {
+  if (document.visibilityState === "visible") verificarAtualizacao();
+}, 5 * 60 * 1000);
 
 // ---------- Estado ----------
 let usuario = null;
